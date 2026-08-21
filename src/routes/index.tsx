@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import cortiLogoAsset from "@/assets/corti-logo.png.asset.json";
+import cortiLogo from "@/assets/corti-logo.png";
 import { useCallback, useMemo, useState } from "react";
 import { FileText, Upload, X, AlertCircle, Loader2, Mic, User } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
@@ -249,7 +249,7 @@ function Index() {
           <div className="flex items-center gap-4">
             <p className="font-mono text-sm text-muted-foreground">{PATIENT.id}</p>
             <img
-              src={cortiLogoAsset.url}
+              src={cortiLogo}
               alt="Corti logo"
               className="h-8 w-auto"
             />
