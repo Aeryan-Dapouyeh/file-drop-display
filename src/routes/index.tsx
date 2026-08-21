@@ -320,6 +320,7 @@ function Index() {
             <Panel
               title="Diagnosis codes"
               meta={codes ? `${codes.length} ${codes.length === 1 ? "code" : "codes"}` : undefined}
+              contentClassName="max-h-[320px] overflow-y-auto"
             >
               {!codes ? (
                 <div className="flex min-h-[120px] items-center justify-center rounded-md border border-dashed border-border">
