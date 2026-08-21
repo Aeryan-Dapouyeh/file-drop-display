@@ -4,6 +4,7 @@ import { FileText, Upload, X, AlertCircle, Loader2, Mic, User } from "lucide-rea
 import { useServerFn } from "@tanstack/react-start";
 
 import { extractFacts, type CortiFact, type CortiCode } from "@/lib/corti.functions";
+import { useDictation } from "@/lib/use-dictation";
 import { generatePatientTimeline } from "@/lib/patient-timeline";
 import { PatientTimeline } from "@/components/PatientTimeline";
 
@@ -73,6 +74,12 @@ function Index() {
   const [codes, setCodes] = useState<CortiCode[] | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const runExtractFacts = useServerFn(extractFacts);
+  const dictation = useDictation({
+    onTranscript: (transcript) => {
+      setFileName(null);
+      setText(transcript);
+    },
+  });
 
   const handleFile = useCallback((file: File) => {
     setError(null);
@@ -251,10 +258,34 @@ function Index() {
                 />
               </div>
 
-              <Button variant="outline" className="w-full" disabled>
-                <Mic className="mr-2 h-4 w-4" />
-                Record voice (coming soon)
+              <Button
+                variant={dictation.isRecording ? "default" : "outline"}
+                className="w-full"
+                onClick={dictation.toggle}
+                disabled={dictation.status === "stopping" || isProcessing}
+              >
+                {dictation.status === "connecting" ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : dictation.status === "recording" ? (
+                  <span className="mr-2 h-2.5 w-2.5 animate-pulse rounded-full bg-current" />
+                ) : (
+                  <Mic className="mr-2 h-4 w-4" />
+                )}
+                {dictation.status === "connecting"
+                  ? "Connecting..."
+                  : dictation.status === "recording"
+                    ? "Stop recording"
+                    : dictation.status === "stopping"
+                      ? "Finishing..."
+                      : "Record voice"}
               </Button>
+
+              {dictation.error && (
+                <div className="flex items-start gap-2 rounded-md border border-destructive bg-destructive/10 p-3 text-xs text-destructive">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{dictation.error}</span>
+                </div>
+              )}
 
               {error && (
                 <div className="flex items-start gap-2 rounded-md border border-destructive bg-destructive/10 p-3 text-xs text-destructive">
