@@ -93,6 +93,7 @@ function Index() {
     [newEvents],
   );
   const runExtractFacts = useServerFn(extractFacts);
+  const runGenerateSummary = useServerFn(generateSummary);
   const dictation = useDictation({
     onTranscript: (transcript) => {
       setFileName(null);
