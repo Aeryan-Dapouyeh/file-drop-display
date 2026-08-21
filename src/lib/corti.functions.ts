@@ -130,3 +130,50 @@ export const extractFacts = createServerFn({ method: "POST" })
 
     return { facts, codes };
   });
+
+export type DictationSessionResult =
+  | { url: string; error?: undefined }
+  | { url: null; error: string };
+
+/** Returns a short-lived Corti audio-bridge websocket URL for live dictation. */
+export const createDictationSession = createServerFn({ method: "POST" }).handler(
+  async (): Promise<DictationSessionResult> => {
+    const clientId = process.env["CORTI_CLIENT_ID"];
+    const clientSecret = process.env["CORTI_CLIENT_SECRET"];
+    const environment = process.env["CORTI_ENVIRONMENT"] ?? "eu";
+    const tenant = process.env["CORTI_TENANT"] ?? "base";
+
+    if (!clientId || !clientSecret) {
+      return { url: null, error: "Corti credentials are not configured." };
+    }
+
+    const tokenRes = await fetch(
+      `https://auth.${environment}.corti.app/realms/${tenant}/protocol/openid-connect/token`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id: clientId,
+          client_secret: clientSecret,
+          grant_type: "client_credentials",
+          scope: "openid",
+        }),
+      },
+    );
+
+    if (!tokenRes.ok) {
+      const body = await tokenRes.text();
+      console.error(`Corti auth failed [${tokenRes.status}]: ${body}`);
+      return { url: null, error: `Corti authentication failed (${tokenRes.status}).` };
+    }
+
+    const { access_token: token } = (await tokenRes.json()) as { access_token: string };
+
+    const url =
+      `wss://api.${environment}.corti.app/audio-bridge/v2/transcribe` +
+      `?tenant-name=${encodeURIComponent(tenant)}` +
+      `&token=${encodeURIComponent(`Bearer ${token}`)}`;
+
+    return { url };
+  },
+);
