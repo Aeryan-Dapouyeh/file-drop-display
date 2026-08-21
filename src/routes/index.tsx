@@ -190,9 +190,9 @@ function Index() {
           <div className="flex items-center gap-4">
             <p className="font-mono text-sm text-muted-foreground">{PATIENT.id}</p>
             <img
-              src={cortiLogo}
+              src={cortiLogoAsset.url}
               alt="Corti logo"
-              className="h-8 w-auto text-foreground"
+              className="h-8 w-auto"
             />
           </div>
         </header>
