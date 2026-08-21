@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { FileText, Upload, X, AlertCircle, Loader2, Mic, User } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 
-import { extractFacts, type CortiFact } from "@/lib/corti.functions";
+import { extractFacts, type CortiFact, type CortiCode } from "@/lib/corti.functions";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
