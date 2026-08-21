@@ -16,7 +16,10 @@ export type TimelineEvent = {
   eventType: string;
   value: string;
   unit: string;
+  /** True for events created from a freshly processed journal note. */
+  isNew?: boolean;
 };
+
 
 type Row = Record<string, string>;
 
