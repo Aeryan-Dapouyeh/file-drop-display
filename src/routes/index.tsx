@@ -77,6 +77,7 @@ function Index() {
   const [codes, setCodes] = useState<CortiCode[] | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [newEvents, setNewEvents] = useState<TimelineEvent[]>([]);
+  const [fattyLiverRisk, setFattyLiverRisk] = useState(false);
   const timelineEvents = useMemo(
     () =>
       [...BASE_TIMELINE_EVENTS, ...newEvents].sort(
