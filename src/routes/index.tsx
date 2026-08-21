@@ -428,7 +428,7 @@ function Index() {
                   </p>
                 </div>
               ) : (
-                <div className="flex items-start gap-3 rounded-md border border-foreground bg-foreground p-4 text-primary-foreground">
+                <div className="flex items-start gap-3 rounded-md border border-destructive bg-destructive p-4 text-destructive-foreground">
                   <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
                   <div>
                     <p className="text-sm font-medium">Risk detected</p>
