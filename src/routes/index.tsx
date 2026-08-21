@@ -426,21 +426,30 @@ function Index() {
                 </p>
               ) : (
                 <ol className="divide-y divide-border">
-                  {facts.map((fact, index) => (
-                    <li key={fact.id} className="flex gap-4 py-3 first:pt-0 last:pb-0">
-                      <span className="mt-0.5 font-mono text-xs text-muted-foreground">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                      <div className="space-y-1">
-                        <p className="text-sm leading-relaxed text-foreground">{fact.text}</p>
-                        {fact.group && (
-                          <span className="inline-block rounded border border-border px-2 py-0.5 text-xs uppercase tracking-wide text-muted-foreground">
-                            {fact.group}
-                          </span>
-                        )}
-                      </div>
-                    </li>
-                  ))}
+                  {facts.map((fact, index) => {
+                    const isImportant = importantFactIndices.has(index);
+                    return (
+                      <li key={fact.id} className="flex gap-4 py-3 first:pt-0 last:pb-0">
+                        <span className="mt-0.5 font-mono text-xs text-muted-foreground">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        <div className="space-y-1">
+                          <p
+                            className={`text-sm leading-relaxed ${
+                              isImportant ? "font-semibold text-destructive" : "text-foreground"
+                            }`}
+                          >
+                            {fact.text}
+                          </p>
+                          {fact.group && (
+                            <span className="inline-block rounded border border-border px-2 py-0.5 text-xs uppercase tracking-wide text-muted-foreground">
+                              {fact.group}
+                            </span>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ol>
               )}
             </Panel>
