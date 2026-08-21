@@ -4,7 +4,12 @@ import { useCallback, useMemo, useState } from "react";
 import { FileText, Upload, X, AlertCircle, Loader2, Mic, User } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 
-import { extractFacts, type CortiFact, type CortiCode } from "@/lib/corti.functions";
+import {
+  extractFacts,
+  generateSummary,
+  type CortiFact,
+  type CortiCode,
+} from "@/lib/corti.functions";
 import { useDictation } from "@/lib/use-dictation";
 import { generatePatientTimeline, type TimelineEvent } from "@/lib/patient-timeline";
 import { buildEventsFromExtraction } from "@/lib/corti-insert";
@@ -78,6 +83,8 @@ function Index() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [newEvents, setNewEvents] = useState<TimelineEvent[]>([]);
   const [fattyLiverRisk, setFattyLiverRisk] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
   const timelineEvents = useMemo(
     () =>
       [...BASE_TIMELINE_EVENTS, ...newEvents].sort(
@@ -86,6 +93,7 @@ function Index() {
     [newEvents],
   );
   const runExtractFacts = useServerFn(extractFacts);
+  const runGenerateSummary = useServerFn(generateSummary);
   const dictation = useDictation({
     onTranscript: (transcript) => {
       setFileName(null);
@@ -147,17 +155,38 @@ function Index() {
     setCodes(null);
     setNewEvents([]);
     setFattyLiverRisk(false);
+    setSummary(null);
   }, []);
 
   const onProcess = useCallback(async () => {
     if (!text.trim() || isProcessing) return;
+    const journal = text;
     setIsProcessing(true);
+    setIsSummarizing(true);
     setError(null);
     setFacts(null);
     setCodes(null);
     setFattyLiverRisk(false);
+    setSummary(null);
+
+    void (async () => {
+      try {
+        const result = await runGenerateSummary({ data: { journal } });
+        if (result.error) {
+          setSummary(null);
+          setError((prev) => prev ?? result.error);
+        } else {
+          setSummary(result.summary);
+        }
+      } catch (err) {
+        setError((prev) => prev ?? (err instanceof Error ? err.message : "Summary failed."));
+      } finally {
+        setIsSummarizing(false);
+      }
+    })();
+
     try {
-      const result = await runExtractFacts({ data: { journal: text } });
+      const result = await runExtractFacts({ data: { journal } });
       if (result.error) {
         setError(result.error);
       } else {
@@ -171,7 +200,7 @@ function Index() {
     } finally {
       setIsProcessing(false);
     }
-  }, [text, isProcessing, runExtractFacts]);
+  }, [text, isProcessing, runExtractFacts, runGenerateSummary]);
 
   return (
     <div className="min-h-screen bg-secondary px-6 py-8 text-foreground">
@@ -338,6 +367,26 @@ function Index() {
                 >
                   Clear
                 </Button>
+              </div>
+
+              <div className="space-y-2 border-t border-border pt-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium">Summary</h3>
+                  {isSummarizing && <Loader2 className="h-4 w-4 animate-spin" />}
+                </div>
+                {summary ? (
+                  <p className="max-h-[220px] overflow-y-auto whitespace-pre-wrap rounded-md border border-border bg-background p-3 text-sm leading-relaxed">
+                    {summary}
+                  </p>
+                ) : (
+                  <div className="flex min-h-[80px] items-center justify-center rounded-md border border-dashed border-border">
+                    <p className="text-sm text-muted-foreground">
+                      {isSummarizing
+                        ? "Generating summary..."
+                        : "Process a note to generate a summary."}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </Panel>
