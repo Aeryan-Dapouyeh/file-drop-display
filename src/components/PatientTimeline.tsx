@@ -34,6 +34,9 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
   const [pinned, setPinned] = useState<number | null>(null);
   const pinnedRef = useRef(pinned);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const animationRef = useRef<number | null>(null);
+
 
   // Keep a ref in sync so mouse-leave handlers always read the latest value.
   useEffect(() => {
