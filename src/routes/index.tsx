@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
-import { FileText, Upload, X, AlertCircle, Loader2 } from "lucide-react";
+import { FileText, Upload, X, AlertCircle, Loader2, Mic, User } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 
 import { extractFacts, type CortiFact } from "@/lib/corti.functions";
@@ -12,16 +12,51 @@ import { Textarea } from "@/components/ui/textarea";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Medical Note Processor" },
-      { name: "description", content: "Drop a medical note .txt file or paste text to extract facts and medical codes." },
-      { property: "og:title", content: "Medical Note Processor" },
-      { property: "og:description", content: "Drop a medical note .txt file or paste text to extract facts and medical codes." },
+      { title: "Patient Overview | Medical Note Processor" },
+      { name: "description", content: "Review patient details and timeline, then extract clinical facts and diagnosis codes from a journal note." },
+      { property: "og:title", content: "Patient Overview | Medical Note Processor" },
+      { property: "og:description", content: "Review patient details and timeline, then extract clinical facts and diagnosis codes from a journal note." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
 });
+
+const PATIENT = {
+  name: "Jane Doe",
+  id: "PT-004821",
+  age: "47 years",
+  sex: "Female",
+  weight: "68 kg",
+  height: "170 cm",
+};
+
+function Panel({
+  title,
+  meta,
+  children,
+  className,
+}: {
+  title: string;
+  meta?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      className={`rounded-lg border border-border bg-background ${className ?? ""}`}
+    >
+      <header className="flex items-baseline justify-between border-b border-border px-5 py-3">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-foreground">
+          {title}
+        </h2>
+        {meta && <span className="text-xs text-muted-foreground">{meta}</span>}
+      </header>
+      <div className="p-5">{children}</div>
+    </section>
+  );
+}
 
 function Index() {
   const [text, setText] = useState("");
@@ -105,123 +140,159 @@ function Index() {
   }, [text, isProcessing, runExtractFacts]);
 
   return (
-    <div className="min-h-screen bg-background px-6 py-12 text-foreground">
-      <div className="mx-auto max-w-3xl">
-        <header className="mb-12">
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">
-            Medical Note Processor
-          </h1>
-          <p className="mt-3 text-lg text-muted-foreground">
-            Drop a journal note or paste text to prepare it for fact and medical code extraction.
-          </p>
+    <div className="min-h-screen bg-secondary px-6 py-8 text-foreground">
+      <div className="mx-auto max-w-7xl space-y-6">
+        {/* 1) Patient overview header */}
+        <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-background">
+              <User className="h-6 w-6 text-foreground" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Patient overview
+              </p>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                {PATIENT.name}
+              </h1>
+            </div>
+          </div>
+          <p className="font-mono text-sm text-muted-foreground">{PATIENT.id}</p>
         </header>
 
-        <div className="space-y-8">
-          <div
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            onDragLeave={onDragLeave}
-            className={`relative rounded-lg border-2 border-dashed p-10 text-center transition-colors ${
-              isDragging ? "bg-secondary border-foreground" : "border-border hover:bg-secondary"
-            }`}
-          >
-            <div className="relative z-10 flex flex-col items-center gap-3 pointer-events-none">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-background">
-                <Upload className="h-6 w-6 text-foreground" />
-              </div>
-              <div>
-                <p className="text-base font-medium text-foreground">
-                  Drop a .txt file here
-                </p>
-                <p className="text-sm text-muted-foreground">or click to browse</p>
-              </div>
-            </div>
-            <input
-              type="file"
-              accept=".txt,text/plain"
-              onChange={onFileInputChange}
-              className="absolute inset-0 cursor-pointer opacity-0"
-              aria-label="Upload a .txt file"
-            />
-          </div>
+        {/* 2) Demographics + timeline */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Panel title="Patient details">
+            <dl className="divide-y divide-border">
+              {[
+                ["Age", PATIENT.age],
+                ["Sex", PATIENT.sex],
+                ["Weight", PATIENT.weight],
+                ["Height", PATIENT.height],
+              ].map(([label, value]) => (
+                <div key={label} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                  <dt className="text-sm text-muted-foreground">{label}</dt>
+                  <dd className="text-sm font-medium text-foreground">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </Panel>
 
-          {error && (
-            <div className="flex items-center gap-2 rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
-              <AlertCircle className="h-4 w-4" />
-              <span>{error}</span>
+          <Panel title="Patient timeline" className="lg:col-span-2">
+            <div className="flex min-h-[220px] items-center justify-center rounded-md border border-dashed border-border">
+              <p className="max-w-sm px-6 text-center text-sm text-muted-foreground">
+                The timeline is built from extracted events and patient data. Process a
+                journal note to populate it.
+              </p>
             </div>
-          )}
+          </Panel>
+        </div>
 
-          {fileName && (
-            <div className="flex items-center justify-between rounded-md border border-border bg-secondary px-4 py-2">
-              <div className="flex items-center gap-2 text-sm">
-                <FileText className="h-4 w-4" />
-                <span className="font-medium text-foreground">{fileName}</span>
-              </div>
-              <button
-                type="button"
-                onClick={clear}
-                className="rounded p-1 hover:bg-background"
-                aria-label="Clear file"
+        {/* 3) Input + results */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Panel title="Journal input" meta={`${text.length} chars`}>
+            <div className="space-y-4">
+              <div
+                onDrop={onDrop}
+                onDragOver={onDragOver}
+                onDragLeave={onDragLeave}
+                className={`relative rounded-md border-2 border-dashed p-6 text-center transition-colors ${
+                  isDragging ? "border-foreground bg-secondary" : "border-border hover:bg-secondary"
+                }`}
               >
-                <X className="h-4 w-4 text-muted-foreground" />
-              </button>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="note-text">Journal text</Label>
-              <span className="text-xs text-muted-foreground">
-                {text.length} characters
-              </span>
-            </div>
-            <Textarea
-              id="note-text"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Paste text here, or drop a .txt file above..."
-              className="min-h-[320px] resize-y border-foreground/20 font-mono text-base leading-relaxed focus-visible:border-foreground focus-visible:ring-foreground"
-            />
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={onProcess}
-              disabled={!text.trim() || isProcessing}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isProcessing ? "Extracting facts..." : "Process note"}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={clear}
-              disabled={(!text && !fileName) || isProcessing}
-            >
-              Clear
-            </Button>
-          </div>
-
-          {facts && (
-            <section className="space-y-4 border-t border-border pt-8">
-              <div className="flex items-baseline justify-between">
-                <h2 className="text-2xl font-bold tracking-tight text-foreground">
-                  Extracted facts
-                </h2>
-                <span className="text-xs text-muted-foreground">
-                  {facts.length} {facts.length === 1 ? "fact" : "facts"}
-                </span>
+                <div className="pointer-events-none relative z-10 flex flex-col items-center gap-2">
+                  <Upload className="h-5 w-5 text-foreground" />
+                  <p className="text-sm font-medium text-foreground">Drop a .txt file</p>
+                  <p className="text-xs text-muted-foreground">or click to browse</p>
+                </div>
+                <input
+                  type="file"
+                  accept=".txt,text/plain"
+                  onChange={onFileInputChange}
+                  className="absolute inset-0 cursor-pointer opacity-0"
+                  aria-label="Upload a .txt file"
+                />
               </div>
 
-              {facts.length === 0 ? (
+              {fileName && (
+                <div className="flex items-center justify-between rounded-md border border-border bg-secondary px-3 py-2">
+                  <div className="flex min-w-0 items-center gap-2 text-xs">
+                    <FileText className="h-4 w-4 shrink-0" />
+                    <span className="truncate font-medium text-foreground">{fileName}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clear}
+                    className="rounded p-1 hover:bg-background"
+                    aria-label="Clear file"
+                  >
+                    <X className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="note-text">Journal text</Label>
+                <Textarea
+                  id="note-text"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="Paste text here, or drop a .txt file above..."
+                  className="min-h-[200px] resize-y border-foreground/20 font-mono text-sm leading-relaxed focus-visible:border-foreground focus-visible:ring-foreground"
+                />
+              </div>
+
+              <Button variant="outline" className="w-full" disabled>
+                <Mic className="mr-2 h-4 w-4" />
+                Record voice (coming soon)
+              </Button>
+
+              {error && (
+                <div className="flex items-start gap-2 rounded-md border border-destructive bg-destructive/10 p-3 text-xs text-destructive">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={onProcess}
+                  disabled={!text.trim() || isProcessing}
+                  className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isProcessing ? "Extracting..." : "Process note"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={clear}
+                  disabled={(!text && !fileName) || isProcessing}
+                >
+                  Clear
+                </Button>
+              </div>
+            </div>
+          </Panel>
+
+          <div className="space-y-6 lg:col-span-2">
+            <Panel
+              title="Clinical facts"
+              meta={facts ? `${facts.length} ${facts.length === 1 ? "fact" : "facts"}` : undefined}
+            >
+              {!facts ? (
+                <div className="flex min-h-[160px] items-center justify-center rounded-md border border-dashed border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Process a note to list the extracted clinical facts.
+                  </p>
+                </div>
+              ) : facts.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   No facts were extracted from this note.
                 </p>
               ) : (
-                <ol className="divide-y divide-border rounded-md border border-border">
+                <ol className="divide-y divide-border">
                   {facts.map((fact, index) => (
-                    <li key={fact.id} className="flex gap-4 p-4">
+                    <li key={fact.id} className="flex gap-4 py-3 first:pt-0 last:pb-0">
                       <span className="mt-0.5 font-mono text-xs text-muted-foreground">
                         {String(index + 1).padStart(2, "0")}
                       </span>
@@ -237,8 +308,16 @@ function Index() {
                   ))}
                 </ol>
               )}
-            </section>
-          )}
+            </Panel>
+
+            <Panel title="Diagnosis codes">
+              <div className="flex min-h-[120px] items-center justify-center rounded-md border border-dashed border-border">
+                <p className="text-sm text-muted-foreground">
+                  Diagnosis codes will be listed here once code extraction is connected.
+                </p>
+              </div>
+            </Panel>
+          </div>
         </div>
       </div>
     </div>
