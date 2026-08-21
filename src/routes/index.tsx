@@ -83,6 +83,8 @@ function Index() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [newEvents, setNewEvents] = useState<TimelineEvent[]>([]);
   const [fattyLiverRisk, setFattyLiverRisk] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
   const timelineEvents = useMemo(
     () =>
       [...BASE_TIMELINE_EVENTS, ...newEvents].sort(
