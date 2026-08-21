@@ -34,6 +34,9 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
   const [pinned, setPinned] = useState<number | null>(null);
   const pinnedRef = useRef(pinned);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const animationRef = useRef<number | null>(null);
+
 
   // Keep a ref in sync so mouse-leave handlers always read the latest value.
   useEffect(() => {
@@ -67,6 +70,47 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [pinned]);
 
+  // Index of the last newly added (green) point, if any.
+  const lastNewIndex = useMemo(() => {
+    for (let i = points.length - 1; i >= 0; i--) {
+      if (points[i]?.items.some((item) => item.isNew)) return i;
+    }
+    return -1;
+  }, [points]);
+
+  // When new events arrive, glide the timeline from left to the new green dot.
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container || lastNewIndex < 0) return;
+
+    const target = Math.max(
+      0,
+      Math.min(
+        lastNewIndex * 76 + 38 - container.clientWidth / 2,
+        container.scrollWidth - container.clientWidth,
+      ),
+    );
+    const start = 0;
+    container.scrollLeft = start;
+    if (target <= 0) return;
+
+    const duration = 1600;
+    const startTime = performance.now();
+    if (animationRef.current) cancelAnimationFrame(animationRef.current);
+
+    const step = (now: number) => {
+      const t = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      container.scrollLeft = start + (target - start) * eased;
+      if (t < 1) animationRef.current = requestAnimationFrame(step);
+    };
+    animationRef.current = requestAnimationFrame(step);
+
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, [lastNewIndex, points.length]);
+
   if (points.length === 0) {
     return (
       <div className="flex min-h-[220px] items-center justify-center rounded-md border border-dashed border-border">
@@ -77,7 +121,8 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
 
 
   return (
-    <div className="overflow-x-auto pb-2">
+    <div ref={scrollRef} className="overflow-x-auto pb-2">
+
       <div className="relative min-h-[200px] min-w-full pt-6" style={{ width: points.length * 76 }}>
         {/* the line */}
         <div className="absolute left-0 right-0 top-[86px] h-px bg-foreground/25" />
@@ -140,7 +185,8 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
                       : isNew
                         ? "bg-timeline-new"
                         : "bg-background"
-                  }`}
+                  }${index === lastNewIndex ? " pulse" : ""}`}
+
                 >
                   {point.items.length > 1 && (
                     <span
