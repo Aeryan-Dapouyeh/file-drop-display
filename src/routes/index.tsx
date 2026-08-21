@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
-import { FileText, Upload, X, AlertCircle } from "lucide-react";
+import { FileText, Upload, X, AlertCircle, Loader2 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+
+import { extractFacts, type CortiFact } from "@/lib/corti.functions";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -25,6 +28,9 @@ function Index() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [facts, setFacts] = useState<CortiFact[] | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const runExtractFacts = useServerFn(extractFacts);
 
   const handleFile = useCallback((file: File) => {
     setError(null);
@@ -76,13 +82,27 @@ function Index() {
     setText("");
     setFileName(null);
     setError(null);
+    setFacts(null);
   }, []);
 
-  const onProcess = useCallback(() => {
-    if (!text.trim()) return;
-    // Placeholder for Phase 3: send text to the backend for extraction.
-    alert("Process clicked — backend integration coming in the next phase.");
-  }, [text]);
+  const onProcess = useCallback(async () => {
+    if (!text.trim() || isProcessing) return;
+    setIsProcessing(true);
+    setError(null);
+    setFacts(null);
+    try {
+      const result = await runExtractFacts({ data: { journal: text } });
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setFacts(result.facts);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Fact extraction failed.");
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [text, isProcessing, runExtractFacts]);
 
   return (
     <div className="min-h-screen bg-background px-6 py-12 text-foreground">
@@ -168,19 +188,57 @@ function Index() {
           <div className="flex items-center gap-3">
             <Button
               onClick={onProcess}
-              disabled={!text.trim()}
+              disabled={!text.trim() || isProcessing}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              Process note
+              {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isProcessing ? "Extracting facts..." : "Process note"}
             </Button>
             <Button
               variant="outline"
               onClick={clear}
-              disabled={!text && !fileName}
+              disabled={(!text && !fileName) || isProcessing}
             >
               Clear
             </Button>
           </div>
+
+          {facts && (
+            <section className="space-y-4 border-t border-border pt-8">
+              <div className="flex items-baseline justify-between">
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                  Extracted facts
+                </h2>
+                <span className="text-xs text-muted-foreground">
+                  {facts.length} {facts.length === 1 ? "fact" : "facts"}
+                </span>
+              </div>
+
+              {facts.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No facts were extracted from this note.
+                </p>
+              ) : (
+                <ol className="divide-y divide-border rounded-md border border-border">
+                  {facts.map((fact, index) => (
+                    <li key={fact.id} className="flex gap-4 p-4">
+                      <span className="mt-0.5 font-mono text-xs text-muted-foreground">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <div className="space-y-1">
+                        <p className="text-sm leading-relaxed text-foreground">{fact.text}</p>
+                        {fact.group && (
+                          <span className="inline-block rounded border border-border px-2 py-0.5 text-xs uppercase tracking-wide text-muted-foreground">
+                            {fact.group}
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
+          )}
         </div>
       </div>
     </div>
