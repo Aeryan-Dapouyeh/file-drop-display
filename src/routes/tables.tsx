@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import cortiLogoAsset from "@/assets/corti-logo.png.asset.json";
+import cortiLogo from "@/assets/corti-logo.png";
 import { parseCsv } from "@/lib/patient-timeline";
 import bloodtestsCsv from "@/data/Bloodtests.csv?raw";
 import diagnosisCsv from "@/data/Diagnosis.csv?raw";
@@ -71,7 +71,7 @@ function TablesPage() {
             </p>
           </div>
           <img
-            src={cortiLogoAsset.url}
+            src={cortiLogo}
             alt="Corti logo"
             className="h-8 w-auto"
           />
