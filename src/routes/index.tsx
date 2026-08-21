@@ -155,6 +155,7 @@ function Index() {
     setError(null);
     setFacts(null);
     setCodes(null);
+    setFattyLiverRisk(false);
     try {
       const result = await runExtractFacts({ data: { journal: text } });
       if (result.error) {
@@ -163,6 +164,7 @@ function Index() {
         setFacts(result.facts);
         setCodes(result.codes);
         setNewEvents(buildEventsFromExtraction(result.facts, result.codes, ENCOUNTER_KEY));
+        setFattyLiverRisk(true);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Fact extraction failed.");
