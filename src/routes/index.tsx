@@ -37,7 +37,7 @@ export const Route = createFileRoute("/")({
 });
 
 const PATIENT = {
-  name: "John Doe",
+  name: "Gerrit van Arkle",
   id: "PT-004821",
   age: "68 years",
   sex: "Male",
