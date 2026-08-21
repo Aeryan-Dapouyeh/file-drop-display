@@ -377,6 +377,21 @@ function Index() {
                 </div>
               )}
 
+              <div className="space-y-2">
+                <Label htmlFor="note-type">Note type</Label>
+                <Select value={noteType} onValueChange={(value) => setNoteType(value as typeof noteType)}>
+                  <SelectTrigger id="note-type" className="w-full cursor-pointer border-foreground/20 focus:ring-foreground">
+                    <SelectValue placeholder="Select note type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ML diagnostics">ML diagnostics</SelectItem>
+                    <SelectItem value="Emergency room">Emergency room</SelectItem>
+                    <SelectItem value="Inpatient">Inpatient</SelectItem>
+                    <SelectItem value="Outpatient">Outpatient</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="flex items-center gap-3">
                 <Button
                   onClick={onProcess}
