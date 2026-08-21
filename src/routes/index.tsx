@@ -155,17 +155,38 @@ function Index() {
     setCodes(null);
     setNewEvents([]);
     setFattyLiverRisk(false);
+    setSummary(null);
   }, []);
 
   const onProcess = useCallback(async () => {
     if (!text.trim() || isProcessing) return;
+    const journal = text;
     setIsProcessing(true);
+    setIsSummarizing(true);
     setError(null);
     setFacts(null);
     setCodes(null);
     setFattyLiverRisk(false);
+    setSummary(null);
+
+    void (async () => {
+      try {
+        const result = await runGenerateSummary({ data: { journal } });
+        if (result.error) {
+          setSummary(null);
+          setError((prev) => prev ?? result.error);
+        } else {
+          setSummary(result.summary);
+        }
+      } catch (err) {
+        setError((prev) => prev ?? (err instanceof Error ? err.message : "Summary failed."));
+      } finally {
+        setIsSummarizing(false);
+      }
+    })();
+
     try {
-      const result = await runExtractFacts({ data: { journal: text } });
+      const result = await runExtractFacts({ data: { journal } });
       if (result.error) {
         setError(result.error);
       } else {
@@ -179,7 +200,7 @@ function Index() {
     } finally {
       setIsProcessing(false);
     }
-  }, [text, isProcessing, runExtractFacts]);
+  }, [text, isProcessing, runExtractFacts, runGenerateSummary]);
 
   return (
     <div className="min-h-screen bg-secondary px-6 py-8 text-foreground">
