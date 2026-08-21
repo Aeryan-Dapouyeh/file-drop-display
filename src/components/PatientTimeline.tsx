@@ -30,7 +30,7 @@ function formatDay(iso: string) {
 }
 
 export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
-  const [active, setActive] = useState<number | null>(null);
+  const [active, setActive] = useState<{ index: number; x: number; y: number } | null>(null);
 
   // Group events that share a timestamp into a single dot on the line.
   const points = useMemo(() => {
@@ -53,21 +53,20 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
 
   return (
     <div className="overflow-x-auto pb-2">
-      <div className="relative min-h-[330px] min-w-full pt-6" style={{ width: points.length * 76 }}>
+      <div className="relative min-h-[200px] min-w-full pt-6" style={{ width: points.length * 76 }}>
         {/* the line */}
         <div className="absolute left-0 right-0 top-[86px] h-px bg-foreground/25" />
 
         <div className="relative flex">
           {points.map((point, index) => {
-            const isActive = active === index;
+            const isActive = active?.index === index;
             const isNewDay =
               index === 0 || point.time.slice(0, 10) !== points[index - 1]!.time.slice(0, 10);
             return (
               <div
                 key={point.time}
                 className="relative flex w-[76px] shrink-0 flex-col items-center"
-                onMouseEnter={() => setActive(index)}
-                onMouseLeave={() => setActive((cur) => (cur === index ? null : cur))}
+                onMouseLeave={() => setActive((cur) => (cur?.index === index ? null : cur))}
               >
                 {isNewDay && (
                   <span className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -84,7 +83,14 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
                 <button
                   type="button"
                   aria-label={`${formatTime(point.time)} — ${point.items.length} event(s)`}
-                  onFocus={() => setActive(index)}
+                  onMouseEnter={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setActive({ index, x: rect.left + rect.width / 2, y: rect.bottom + 10 });
+                  }}
+                  onFocus={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setActive({ index, x: rect.left + rect.width / 2, y: rect.bottom + 10 });
+                  }}
                   onBlur={() => setActive(null)}
                   className={`relative z-10 flex h-4 w-4 items-center justify-center rounded-full border-2 border-foreground transition-all ${
                     isActive ? "scale-125 bg-foreground" : "bg-background"
@@ -99,8 +105,11 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
                   )}
                 </button>
 
-                {isActive && (
-                  <div className="absolute left-1/2 top-[104px] z-20 max-h-[210px] w-64 -translate-x-1/2 overflow-y-auto rounded-md border border-foreground bg-background p-3 shadow-lg">
+                {isActive && active && (
+                  <div
+                    className="fixed z-50 max-h-[260px] w-64 -translate-x-1/2 overflow-y-auto rounded-md border border-foreground bg-background p-3 shadow-lg"
+                    style={{ left: active.x, top: active.y }}
+                  >
                     <p className="mb-2 font-mono text-[11px] font-semibold text-foreground">
                       {formatTime(point.time)}
                     </p>
