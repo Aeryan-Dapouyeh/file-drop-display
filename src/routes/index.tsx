@@ -119,6 +119,7 @@ function Index() {
     setFileName(null);
     setError(null);
     setFacts(null);
+    setCodes(null);
   }, []);
 
   const onProcess = useCallback(async () => {
@@ -126,12 +127,14 @@ function Index() {
     setIsProcessing(true);
     setError(null);
     setFacts(null);
+    setCodes(null);
     try {
       const result = await runExtractFacts({ data: { journal: text } });
       if (result.error) {
         setError(result.error);
       } else {
         setFacts(result.facts);
+        setCodes(result.codes);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Fact extraction failed.");
