@@ -4,7 +4,12 @@ import { useCallback, useMemo, useState } from "react";
 import { FileText, Upload, X, AlertCircle, Loader2, Mic, User } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 
-import { extractFacts, type CortiFact, type CortiCode } from "@/lib/corti.functions";
+import {
+  extractFacts,
+  generateSummary,
+  type CortiFact,
+  type CortiCode,
+} from "@/lib/corti.functions";
 import { useDictation } from "@/lib/use-dictation";
 import { generatePatientTimeline, type TimelineEvent } from "@/lib/patient-timeline";
 import { buildEventsFromExtraction } from "@/lib/corti-insert";
