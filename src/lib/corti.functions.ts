@@ -177,3 +177,110 @@ export const createDictationSession = createServerFn({ method: "POST" }).handler
     return { url };
   },
 );
+
+export type SummaryResult = { summary: string; error?: undefined } | { summary: null; error: string };
+
+/** Generates a clinical summary of a journal using Corti's text generation (document) model. */
+export const generateSummary = createServerFn({ method: "POST" })
+  .inputValidator((input: { journal: string }) => {
+    const journal = String(input?.journal ?? "").trim();
+    if (!journal) throw new Error("Journal text is required.");
+    return { journal };
+  })
+  .handler(async ({ data }): Promise<SummaryResult> => {
+    const clientId = process.env["CORTI_CLIENT_ID"];
+    const clientSecret = process.env["CORTI_CLIENT_SECRET"];
+    const environment = process.env["CORTI_ENVIRONMENT"] ?? "eu";
+    const tenant = process.env["CORTI_TENANT"] ?? "base";
+
+    if (!clientId || !clientSecret) {
+      return { summary: null, error: "Corti credentials are not configured." };
+    }
+
+    const tokenRes = await fetch(
+      `https://auth.${environment}.corti.app/realms/${tenant}/protocol/openid-connect/token`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id: clientId,
+          client_secret: clientSecret,
+          grant_type: "client_credentials",
+          scope: "openid",
+        }),
+      },
+    );
+
+    if (!tokenRes.ok) {
+      const body = await tokenRes.text();
+      console.error(`Corti auth failed [${tokenRes.status}]: ${body}`);
+      return { summary: null, error: `Corti authentication failed (${tokenRes.status}).` };
+    }
+
+    const { access_token: token } = (await tokenRes.json()) as { access_token: string };
+
+    const authHeaders: Record<string, string> = {
+      Authorization: `Bearer ${token}`,
+      "Tenant-Name": tenant,
+      "Content-Type": "application/json",
+    };
+
+    // Document generation requires an interaction.
+    const interactionRes = await fetch(`https://api.${environment}.corti.app/v2/interactions/`, {
+      method: "POST",
+      headers: authHeaders,
+      body: JSON.stringify({
+        encounter: {
+          identifier: crypto.randomUUID(),
+          status: "planned",
+          type: "first_consultation",
+          title: "Patient journal summary",
+        },
+      }),
+    });
+
+    if (!interactionRes.ok) {
+      const body = await interactionRes.text();
+      console.error(`Corti interaction failed [${interactionRes.status}]: ${body}`);
+      return { summary: null, error: `Summary generation failed (${interactionRes.status}).` };
+    }
+
+    const { interactionId } = (await interactionRes.json()) as { interactionId: string };
+
+    const docRes = await fetch(
+      `https://api.${environment}.corti.app/v2/interactions/${interactionId}/documents`,
+      {
+        method: "POST",
+        headers: { ...authHeaders, "X-Corti-Retention-Policy": "none" },
+        body: JSON.stringify({
+          context: [{ type: "string", data: data.journal }],
+          templateKey: "corti-brief-clinical-note",
+          name: "Generated patient summary",
+          outputLanguage: "en",
+        }),
+      },
+    );
+
+    if (!docRes.ok) {
+      const body = await docRes.text();
+      console.error(`Corti document failed [${docRes.status}]: ${body}`);
+      return {
+        summary: null,
+        error: `Summary generation failed (${docRes.status}): ${body.slice(0, 300)}`,
+      };
+    }
+
+    const document = (await docRes.json()) as {
+      sections?: Array<{ name?: string; text?: string }>;
+    };
+
+    const summary = (document.sections ?? [])
+      .filter((section) => section.text)
+      .map((section) => (section.name ? `${section.name}\n${section.text}` : String(section.text)))
+      .join("\n\n")
+      .trim();
+
+    if (!summary) return { summary: null, error: "Corti returned an empty summary." };
+
+    return { summary };
+  });
