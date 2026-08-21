@@ -53,7 +53,7 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
 
   return (
     <div className="overflow-x-auto pb-2">
-      <div className="relative min-h-[200px] min-w-full pt-6" style={{ width: points.length * 76 }}>
+      <div className="relative min-h-[330px] min-w-full pt-6" style={{ width: points.length * 76 }}>
         {/* the line */}
         <div className="absolute left-0 right-0 top-[86px] h-px bg-foreground/25" />
 
@@ -100,7 +100,7 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
                 </button>
 
                 {isActive && (
-                  <div className="absolute left-1/2 top-[104px] z-20 w-64 -translate-x-1/2 rounded-md border border-foreground bg-background p-3 shadow-lg">
+                  <div className="absolute left-1/2 top-[104px] z-20 max-h-[210px] w-64 -translate-x-1/2 overflow-y-auto rounded-md border border-foreground bg-background p-3 shadow-lg">
                     <p className="mb-2 font-mono text-[11px] font-semibold text-foreground">
                       {formatTime(point.time)}
                     </p>
