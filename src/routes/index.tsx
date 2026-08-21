@@ -11,8 +11,9 @@ import {
   type CortiCode,
 } from "@/lib/corti.functions";
 import { useDictation } from "@/lib/use-dictation";
-import { generatePatientTimeline, type TimelineEvent } from "@/lib/patient-timeline";
+import { generatePatientTimeline } from "@/lib/patient-timeline";
 import { buildEventsFromExtraction } from "@/lib/corti-insert";
+import { useDashboardState } from "@/lib/dashboard-state";
 import { PatientTimeline } from "@/components/PatientTimeline";
 
 import { Button } from "@/components/ui/button";
