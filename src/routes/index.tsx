@@ -284,6 +284,7 @@ function Index() {
             <Panel
               title="Clinical facts"
               meta={facts ? `${facts.length} ${facts.length === 1 ? "fact" : "facts"}` : undefined}
+              contentClassName="max-h-[320px] overflow-y-auto"
             >
               {!facts ? (
                 <div className="flex min-h-[160px] items-center justify-center rounded-md border border-dashed border-border">
