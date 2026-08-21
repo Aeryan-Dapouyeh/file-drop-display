@@ -185,7 +185,8 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
                       : isNew
                         ? "bg-timeline-new"
                         : "bg-background"
-                  }`}
+                  }${index === lastNewIndex ? " pulse" : ""}`}
+
                 >
                   {point.items.length > 1 && (
                     <span
