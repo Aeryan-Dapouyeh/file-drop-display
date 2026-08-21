@@ -24,12 +24,12 @@ export const Route = createFileRoute("/")({
 });
 
 const PATIENT = {
-  name: "Jane Doe",
+  name: "John Doe",
   id: "PT-004821",
-  age: "47 years",
-  sex: "Female",
-  weight: "68 kg",
-  height: "170 cm",
+  age: "68 years",
+  sex: "Male",
+  weight: "82 kg",
+  height: "175 cm",
 };
 
 function Panel({
@@ -37,11 +37,13 @@ function Panel({
   meta,
   children,
   className,
+  contentClassName,
 }: {
   title: string;
   meta?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  contentClassName?: string;
 }) {
   return (
     <section
@@ -53,7 +55,7 @@ function Panel({
         </h2>
         {meta && <span className="text-xs text-muted-foreground">{meta}</span>}
       </header>
-      <div className="p-5">{children}</div>
+      <div className={`p-5 ${contentClassName ?? ""}`}>{children}</div>
     </section>
   );
 }
@@ -282,6 +284,7 @@ function Index() {
             <Panel
               title="Clinical facts"
               meta={facts ? `${facts.length} ${facts.length === 1 ? "fact" : "facts"}` : undefined}
+              contentClassName="max-h-[320px] overflow-y-auto"
             >
               {!facts ? (
                 <div className="flex min-h-[160px] items-center justify-center rounded-md border border-dashed border-border">
@@ -317,6 +320,7 @@ function Index() {
             <Panel
               title="Diagnosis codes"
               meta={codes ? `${codes.length} ${codes.length === 1 ? "code" : "codes"}` : undefined}
+              contentClassName="max-h-[320px] overflow-y-auto"
             >
               {!codes ? (
                 <div className="flex min-h-[120px] items-center justify-center rounded-md border border-dashed border-border">
