@@ -146,6 +146,7 @@ function Index() {
     setFacts(null);
     setCodes(null);
     setNewEvents([]);
+    setFattyLiverRisk(false);
   }, []);
 
   const onProcess = useCallback(async () => {
