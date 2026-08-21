@@ -73,7 +73,7 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
   // Index of the last newly added (green) point, if any.
   const lastNewIndex = useMemo(() => {
     for (let i = points.length - 1; i >= 0; i--) {
-      if (points[i].items.some((item) => item.isNew)) return i;
+      if (points[i]?.items.some((item) => item.isNew)) return i;
     }
     return -1;
   }, [points]);
