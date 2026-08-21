@@ -368,6 +368,26 @@ function Index() {
                   Clear
                 </Button>
               </div>
+
+              <div className="space-y-2 border-t border-border pt-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium">Summary</h3>
+                  {isSummarizing && <Loader2 className="h-4 w-4 animate-spin" />}
+                </div>
+                {summary ? (
+                  <p className="max-h-[220px] overflow-y-auto whitespace-pre-wrap rounded-md border border-border bg-background p-3 text-sm leading-relaxed">
+                    {summary}
+                  </p>
+                ) : (
+                  <div className="flex min-h-[80px] items-center justify-center rounded-md border border-dashed border-border">
+                    <p className="text-sm text-muted-foreground">
+                      {isSummarizing
+                        ? "Generating summary..."
+                        : "Process a note to generate a summary."}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </Panel>
 
