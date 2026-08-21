@@ -64,6 +64,7 @@ function Index() {
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [facts, setFacts] = useState<CortiFact[] | null>(null);
+  const [codes, setCodes] = useState<CortiCode[] | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const runExtractFacts = useServerFn(extractFacts);
 
