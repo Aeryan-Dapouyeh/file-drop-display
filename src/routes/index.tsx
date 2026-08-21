@@ -428,11 +428,11 @@ function Index() {
                   </p>
                 </div>
               ) : (
-                <div className="flex items-start gap-3 rounded-md border border-amber-600 bg-amber-600/10 p-4">
-                  <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                <div className="flex items-start gap-3 rounded-md border border-foreground bg-foreground p-4 text-primary-foreground">
+                  <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-amber-600">Risk detected</p>
-                    <p className="text-sm text-amber-600/90">
+                    <p className="text-sm font-medium">Risk detected</p>
+                    <p className="text-sm opacity-90">
                       The model predicts an increased risk of Fatty Liver disease.
                     </p>
                   </div>
