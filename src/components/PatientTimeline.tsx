@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { TimelineEvent } from "@/lib/patient-timeline";
 
@@ -31,6 +31,14 @@ function formatDay(iso: string) {
 
 export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
   const [active, setActive] = useState<{ index: number; x: number; y: number } | null>(null);
+  const [pinned, setPinned] = useState<number | null>(null);
+  const pinnedRef = useRef(pinned);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
+
+  // Keep a ref in sync so mouse-leave handlers always read the latest value.
+  useEffect(() => {
+    pinnedRef.current = pinned;
+  }, [pinned]);
 
   // Group events that share a timestamp into a single dot on the line.
   const points = useMemo(() => {
@@ -43,6 +51,22 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
     return [...map.entries()].map(([time, items]) => ({ time, items }));
   }, [events]);
 
+  useEffect(() => {
+    if (pinned === null) return;
+
+    function handleClickOutside(e: MouseEvent) {
+      const target = e.target as Node;
+      const tooltip = tooltipRef.current;
+      if (!tooltip || !tooltip.contains(target)) {
+        setPinned(null);
+        setActive(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [pinned]);
+
   if (points.length === 0) {
     return (
       <div className="flex min-h-[220px] items-center justify-center rounded-md border border-dashed border-border">
@@ -50,6 +74,7 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
       </div>
     );
   }
+
 
   return (
     <div className="overflow-x-auto pb-2">
@@ -60,14 +85,20 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
         <div className="relative flex">
           {points.map((point, index) => {
             const isActive = active?.index === index;
+            const isPinned = pinned === index;
             const isNew = point.items.some((item) => item.isNew);
             const isNewDay =
               index === 0 || point.time.slice(0, 10) !== points[index - 1]!.time.slice(0, 10);
+
             return (
               <div
                 key={point.time}
                 className="relative flex w-[76px] shrink-0 flex-col items-center"
-                onMouseLeave={() => setActive((cur) => (cur?.index === index ? null : cur))}
+                onMouseLeave={() => {
+                  if (pinnedRef.current === null) {
+                    setActive((cur) => (cur?.index === index ? null : cur));
+                  }
+                }}
               >
                 {isNewDay && (
                   <span className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -84,15 +115,23 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
                 <button
                   type="button"
                   aria-label={`${formatTime(point.time)} — ${point.items.length} event(s)`}
+                  aria-pressed={isPinned}
                   onMouseEnter={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    setActive({ index, x: rect.left + rect.width / 2, y: rect.bottom + 10 });
+                    if (pinned === null) {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setActive({ index, x: rect.left + rect.width / 2, y: rect.bottom + 10 });
+                    }
                   }}
-                  onFocus={(e) => {
+                  onClick={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
-                    setActive({ index, x: rect.left + rect.width / 2, y: rect.bottom + 10 });
+                    if (isPinned) {
+                      setPinned(null);
+                      setActive(null);
+                    } else {
+                      setPinned(index);
+                      setActive({ index, x: rect.left + rect.width / 2, y: rect.bottom + 10 });
+                    }
                   }}
-                  onBlur={() => setActive(null)}
                   className={`relative z-10 flex h-4 w-4 items-center justify-center rounded-full border-2 transition-all ${
                     isNew ? "border-timeline-new" : "border-foreground"
                   } ${
@@ -114,11 +153,19 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
 
                 {isActive && active && (
                   <div
+                    ref={(el) => {
+                      tooltipRef.current = el;
+                    }}
                     className="fixed z-50 max-h-[260px] w-64 -translate-x-1/2 overflow-y-auto rounded-md border border-foreground bg-background p-3 shadow-lg"
                     style={{ left: active.x, top: active.y }}
                   >
                     <p className="mb-2 font-mono text-[11px] font-semibold text-foreground">
                       {formatTime(point.time)}
+                      {isPinned && (
+                        <span className="ml-2 text-[9px] uppercase tracking-wider text-muted-foreground">
+                          pinned
+                        </span>
+                      )}
                     </p>
                     <ul className="space-y-2">
                       {point.items.map((item, i) => (
@@ -151,3 +198,5 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
     </div>
   );
 }
+
+
