@@ -23,7 +23,7 @@ export type TimelineEvent = {
 
 type Row = Record<string, string>;
 
-function parseCsv(text: string): Row[] {
+export function parseCsv(text: string): Row[] {
   const rows: string[][] = [];
   let row: string[] = [];
   let field = "";
