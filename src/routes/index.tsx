@@ -105,7 +105,7 @@ function Index() {
               isDragging ? "bg-secondary border-foreground" : "border-border hover:bg-secondary"
             }`}
           >
-            <div className="flex flex-col items-center gap-3">
+            <div className="relative z-10 flex flex-col items-center gap-3 pointer-events-none">
               <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-background">
                 <Upload className="h-6 w-6 text-foreground" />
               </div>
@@ -115,14 +115,14 @@ function Index() {
                 </p>
                 <p className="text-sm text-muted-foreground">or click to browse</p>
               </div>
-              <input
-                type="file"
-                accept=".txt,text/plain"
-                onChange={onFileInputChange}
-                className="absolute inset-0 cursor-pointer opacity-0"
-                aria-label="Upload a .txt file"
-              />
             </div>
+            <input
+              type="file"
+              accept=".txt,text/plain"
+              onChange={onFileInputChange}
+              className="absolute inset-0 cursor-pointer opacity-0"
+              aria-label="Upload a .txt file"
+            />
           </div>
 
           {error && (
