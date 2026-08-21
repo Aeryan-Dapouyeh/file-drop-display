@@ -419,6 +419,26 @@ function Index() {
                 </ul>
               )}
             </Panel>
+
+            <Panel title="Fatty Liver disease metric">
+              {!fattyLiverRisk ? (
+                <div className="flex min-h-[96px] items-center justify-center rounded-md border border-dashed border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Process a note to evaluate fatty liver disease risk.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex items-start gap-3 rounded-md border border-amber-600 bg-amber-600/10 p-4">
+                  <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-600">Risk detected</p>
+                    <p className="text-sm text-amber-600/90">
+                      The model predicts an increased risk of Fatty Liver disease.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </Panel>
           </div>
         </div>
       </div>
