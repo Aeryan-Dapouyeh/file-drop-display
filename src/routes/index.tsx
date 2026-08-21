@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { FileText, Upload, X, AlertCircle, Loader2, Mic, User } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 
-import { extractFacts, type CortiFact } from "@/lib/corti.functions";
+import { extractFacts, type CortiFact, type CortiCode } from "@/lib/corti.functions";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -64,6 +64,7 @@ function Index() {
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [facts, setFacts] = useState<CortiFact[] | null>(null);
+  const [codes, setCodes] = useState<CortiCode[] | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const runExtractFacts = useServerFn(extractFacts);
 
@@ -118,6 +119,7 @@ function Index() {
     setFileName(null);
     setError(null);
     setFacts(null);
+    setCodes(null);
   }, []);
 
   const onProcess = useCallback(async () => {
@@ -125,12 +127,14 @@ function Index() {
     setIsProcessing(true);
     setError(null);
     setFacts(null);
+    setCodes(null);
     try {
       const result = await runExtractFacts({ data: { journal: text } });
       if (result.error) {
         setError(result.error);
       } else {
         setFacts(result.facts);
+        setCodes(result.codes);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Fact extraction failed.");
@@ -310,12 +314,44 @@ function Index() {
               )}
             </Panel>
 
-            <Panel title="Diagnosis codes">
-              <div className="flex min-h-[120px] items-center justify-center rounded-md border border-dashed border-border">
+            <Panel
+              title="Diagnosis codes"
+              meta={codes ? `${codes.length} ${codes.length === 1 ? "code" : "codes"}` : undefined}
+            >
+              {!codes ? (
+                <div className="flex min-h-[120px] items-center justify-center rounded-md border border-dashed border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Process a note to list the extracted diagnosis codes.
+                  </p>
+                </div>
+              ) : codes.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Diagnosis codes will be listed here once code extraction is connected.
+                  No diagnosis codes were extracted from this note.
                 </p>
-              </div>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {codes.map((code) => (
+                    <li key={code.id} className="space-y-1 py-3 first:pt-0 last:pb-0">
+                      <div className="flex flex-wrap items-baseline gap-3">
+                        <span className="rounded border border-foreground px-2 py-0.5 font-mono text-xs font-semibold text-foreground">
+                          {code.code}
+                        </span>
+                        <span className="text-sm font-medium text-foreground">{code.display}</span>
+                        {code.system && (
+                          <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                            {code.system}
+                          </span>
+                        )}
+                      </div>
+                      {code.evidence && (
+                        <p className="text-xs leading-relaxed text-muted-foreground">
+                          {code.evidence}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </Panel>
           </div>
         </div>
