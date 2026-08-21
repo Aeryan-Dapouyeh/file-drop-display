@@ -4,15 +4,11 @@ import { useCallback, useMemo, useState } from "react";
 import { FileText, Upload, X, AlertCircle, Loader2, Mic, User } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 
-import {
-  extractFacts,
-  generateSummary,
-  type CortiFact,
-  type CortiCode,
-} from "@/lib/corti.functions";
+import { extractFacts, generateSummary } from "@/lib/corti.functions";
 import { useDictation } from "@/lib/use-dictation";
-import { generatePatientTimeline, type TimelineEvent } from "@/lib/patient-timeline";
+import { generatePatientTimeline } from "@/lib/patient-timeline";
 import { buildEventsFromExtraction } from "@/lib/corti-insert";
+import { useDashboardState } from "@/lib/dashboard-state";
 import { PatientTimeline } from "@/components/PatientTimeline";
 
 import { Button } from "@/components/ui/button";
@@ -74,17 +70,28 @@ const ENCOUNTER_KEY = "E0001";
 const BASE_TIMELINE_EVENTS = generatePatientTimeline(ENCOUNTER_KEY);
 
 function Index() {
-  const [text, setText] = useState("");
-  const [fileName, setFileName] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    text,
+    setText,
+    fileName,
+    setFileName,
+    error,
+    setError,
+    facts,
+    setFacts,
+    codes,
+    setCodes,
+    newEvents,
+    setNewEvents,
+    fattyLiverRisk,
+    setFattyLiverRisk,
+    summary,
+    setSummary,
+  } = useDashboardState();
   const [isDragging, setIsDragging] = useState(false);
-  const [facts, setFacts] = useState<CortiFact[] | null>(null);
-  const [codes, setCodes] = useState<CortiCode[] | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [newEvents, setNewEvents] = useState<TimelineEvent[]>([]);
-  const [fattyLiverRisk, setFattyLiverRisk] = useState(false);
-  const [summary, setSummary] = useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
+
   const timelineEvents = useMemo(
     () =>
       [...BASE_TIMELINE_EVENTS, ...newEvents].sort(
