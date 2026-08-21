@@ -4,6 +4,8 @@ import { FileText, Upload, X, AlertCircle, Loader2, Mic, User } from "lucide-rea
 import { useServerFn } from "@tanstack/react-start";
 
 import { extractFacts, type CortiFact, type CortiCode } from "@/lib/corti.functions";
+import { generatePatientTimeline } from "@/lib/patient-timeline";
+import { PatientTimeline } from "@/components/PatientTimeline";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -59,6 +61,8 @@ function Panel({
     </section>
   );
 }
+
+const TIMELINE_EVENTS = generatePatientTimeline("E0001");
 
 function Index() {
   const [text, setText] = useState("");
@@ -184,13 +188,12 @@ function Index() {
             </dl>
           </Panel>
 
-          <Panel title="Patient timeline" className="lg:col-span-2">
-            <div className="flex min-h-[220px] items-center justify-center rounded-md border border-dashed border-border">
-              <p className="max-w-sm px-6 text-center text-sm text-muted-foreground">
-                The timeline is built from extracted events and patient data. Process a
-                journal note to populate it.
-              </p>
-            </div>
+          <Panel
+            title="Patient timeline"
+            className="lg:col-span-2"
+            meta={`${TIMELINE_EVENTS.length} events \u2014 scroll right`}
+          >
+            <PatientTimeline events={TIMELINE_EVENTS} />
           </Panel>
         </div>
 
