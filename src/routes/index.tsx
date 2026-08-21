@@ -24,12 +24,12 @@ export const Route = createFileRoute("/")({
 });
 
 const PATIENT = {
-  name: "Jane Doe",
+  name: "John Doe",
   id: "PT-004821",
-  age: "47 years",
-  sex: "Female",
-  weight: "68 kg",
-  height: "170 cm",
+  age: "68 years",
+  sex: "Male",
+  weight: "82 kg",
+  height: "175 cm",
 };
 
 function Panel({
