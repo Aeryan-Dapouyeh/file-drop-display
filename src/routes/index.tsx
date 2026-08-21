@@ -77,6 +77,7 @@ function Index() {
   const [codes, setCodes] = useState<CortiCode[] | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [newEvents, setNewEvents] = useState<TimelineEvent[]>([]);
+  const [fattyLiverRisk, setFattyLiverRisk] = useState(false);
   const timelineEvents = useMemo(
     () =>
       [...BASE_TIMELINE_EVENTS, ...newEvents].sort(
@@ -145,6 +146,7 @@ function Index() {
     setFacts(null);
     setCodes(null);
     setNewEvents([]);
+    setFattyLiverRisk(false);
   }, []);
 
   const onProcess = useCallback(async () => {
@@ -153,6 +155,7 @@ function Index() {
     setError(null);
     setFacts(null);
     setCodes(null);
+    setFattyLiverRisk(false);
     try {
       const result = await runExtractFacts({ data: { journal: text } });
       if (result.error) {
@@ -161,6 +164,7 @@ function Index() {
         setFacts(result.facts);
         setCodes(result.codes);
         setNewEvents(buildEventsFromExtraction(result.facts, result.codes, ENCOUNTER_KEY));
+        setFattyLiverRisk(true);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Fact extraction failed.");
@@ -413,6 +417,26 @@ function Index() {
                     </li>
                   ))}
                 </ul>
+              )}
+            </Panel>
+
+            <Panel title="Fatty Liver disease metric">
+              {!fattyLiverRisk ? (
+                <div className="flex min-h-[96px] items-center justify-center rounded-md border border-dashed border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Process a note to evaluate fatty liver disease risk.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex items-start gap-3 rounded-md border border-foreground bg-foreground p-4 text-primary-foreground">
+                  <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium">Risk detected</p>
+                    <p className="text-sm opacity-90">
+                      The model predicts an increased risk of Fatty Liver disease.
+                    </p>
+                  </div>
+                </div>
               )}
             </Panel>
           </div>
