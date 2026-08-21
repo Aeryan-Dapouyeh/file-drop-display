@@ -3,6 +3,10 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from "re
 import type { CortiFact, CortiCode } from "@/lib/corti.functions";
 import type { TimelineEvent } from "@/lib/patient-timeline";
 
+type NoteType = "ML diagnostics" | "Emergency room" | "Inpatient" | "Outpatient";
+
+const DEFAULT_NOTE_TYPE: NoteType = "Outpatient";
+
 type DashboardState = {
   text: string;
   setText: (value: string) => void;
@@ -20,6 +24,8 @@ type DashboardState = {
   setFattyLiverRisk: (value: boolean) => void;
   summary: string | null;
   setSummary: (value: string | null) => void;
+  noteType: NoteType;
+  setNoteType: (value: NoteType) => void;
 };
 
 const DashboardStateContext = createContext<DashboardState | null>(null);
@@ -37,6 +43,7 @@ export function DashboardStateProvider({ children }: { children: ReactNode }) {
   const [newEvents, setNewEvents] = useState<TimelineEvent[]>([]);
   const [fattyLiverRisk, setFattyLiverRisk] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
+  const [noteType, setNoteType] = useState<NoteType>(DEFAULT_NOTE_TYPE);
 
   const value = useMemo<DashboardState>(
     () => ({
@@ -56,8 +63,10 @@ export function DashboardStateProvider({ children }: { children: ReactNode }) {
       setFattyLiverRisk,
       summary,
       setSummary,
+      noteType,
+      setNoteType,
     }),
-    [text, fileName, error, facts, codes, newEvents, fattyLiverRisk, summary],
+    [text, fileName, error, facts, codes, newEvents, fattyLiverRisk, summary, noteType],
   );
 
   return (

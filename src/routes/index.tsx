@@ -14,6 +14,13 @@ import { PatientTimeline } from "@/components/PatientTimeline";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -87,6 +94,8 @@ function Index() {
     setFattyLiverRisk,
     summary,
     setSummary,
+    noteType,
+    setNoteType,
   } = useDashboardState();
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -367,6 +376,21 @@ function Index() {
                   <span>{error}</span>
                 </div>
               )}
+
+              <div className="space-y-2">
+                <Label htmlFor="note-type">Note type</Label>
+                <Select value={noteType} onValueChange={(value) => setNoteType(value as typeof noteType)}>
+                  <SelectTrigger id="note-type" className="w-full cursor-pointer border-foreground/20 focus:ring-foreground">
+                    <SelectValue placeholder="Select note type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ML diagnostics">ML diagnostics</SelectItem>
+                    <SelectItem value="Emergency room">Emergency room</SelectItem>
+                    <SelectItem value="Inpatient">Inpatient</SelectItem>
+                    <SelectItem value="Outpatient">Outpatient</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               <div className="flex items-center gap-3">
                 <Button
