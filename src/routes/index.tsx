@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
-import cortiLogo from "@/assets/corti-logo.svg";
+import { createFileRoute } from "@tanstack/react-router";
+import cortiLogoAsset from "@/assets/corti-logo.png.asset.json";
 import { useCallback, useMemo, useState } from "react";
 import { FileText, Upload, X, AlertCircle, Loader2, Mic, User } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
