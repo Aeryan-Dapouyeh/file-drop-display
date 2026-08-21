@@ -39,10 +39,10 @@ export const Route = createFileRoute("/")({
 const PATIENT = {
   name: "Gerrit van Arkle",
   id: "PT-004821",
-  age: "68 years",
+  age: "42 years",
   sex: "Male",
   weight: "82 kg",
-  height: "175 cm",
+  height: "192 cm",
 };
 
 function Panel({
