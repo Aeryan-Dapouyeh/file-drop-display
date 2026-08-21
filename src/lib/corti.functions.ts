@@ -7,9 +7,17 @@ export type CortiFact = {
   source: string | null;
 };
 
+export type CortiCode = {
+  id: string;
+  system: string;
+  code: string;
+  display: string;
+  evidence: string;
+};
+
 export type ExtractFactsResult =
-  | { facts: CortiFact[]; error?: undefined }
-  | { facts: []; error: string };
+  | { facts: CortiFact[]; codes: CortiCode[]; error?: undefined }
+  | { facts: []; codes: []; error: string };
 
 export const extractFacts = createServerFn({ method: "POST" })
   .inputValidator((input: { journal: string }) => {
@@ -24,7 +32,7 @@ export const extractFacts = createServerFn({ method: "POST" })
     const tenant = process.env["CORTI_TENANT"] ?? "base";
 
     if (!clientId || !clientSecret) {
-      return { facts: [], error: "Corti credentials are not configured." };
+      return { facts: [], codes: [], error: "Corti credentials are not configured." };
     }
 
     const tokenRes = await fetch(
@@ -44,31 +52,47 @@ export const extractFacts = createServerFn({ method: "POST" })
     if (!tokenRes.ok) {
       const body = await tokenRes.text();
       console.error(`Corti auth failed [${tokenRes.status}]: ${body}`);
-      return { facts: [], error: `Corti authentication failed (${tokenRes.status}).` };
+      return { facts: [], codes: [], error: `Corti authentication failed (${tokenRes.status}).` };
     }
 
     const { access_token: token } = (await tokenRes.json()) as { access_token: string };
 
-    const res = await fetch(`https://api.${environment}.corti.app/v2/tools/extract-facts`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Tenant-Name": tenant,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        context: [{ type: "text", text: data.journal }],
-        outputLanguage: "en",
-      }),
-    });
+    const authHeaders = {
+      Authorization: `Bearer ${token}`,
+      "Tenant-Name": tenant,
+      "Content-Type": "application/json",
+    };
 
-    if (!res.ok) {
-      const body = await res.text();
-      console.error(`Corti extract-facts failed [${res.status}]: ${body}`);
-      return { facts: [], error: `Fact extraction failed (${res.status}): ${body.slice(0, 300)}` };
+    const [factsRes, codesRes] = await Promise.all([
+      fetch(`https://api.${environment}.corti.app/v2/tools/extract-facts`, {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({
+          context: [{ type: "text", text: data.journal }],
+          outputLanguage: "en",
+        }),
+      }),
+      fetch(`https://api.${environment}.corti.app/v2/tools/coding/`, {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({
+          system: ["icd10int-inpatient"],
+          context: [{ type: "text", text: data.journal }],
+        }),
+      }),
+    ]);
+
+    if (!factsRes.ok) {
+      const body = await factsRes.text();
+      console.error(`Corti extract-facts failed [${factsRes.status}]: ${body}`);
+      return {
+        facts: [],
+        codes: [],
+        error: `Fact extraction failed (${factsRes.status}): ${body.slice(0, 300)}`,
+      };
     }
 
-    const payload = (await res.json()) as {
+    const payload = (await factsRes.json()) as {
       facts?: Array<Record<string, unknown>>;
     };
 
@@ -79,5 +103,30 @@ export const extractFacts = createServerFn({ method: "POST" })
       source: fact["source"] == null ? null : String(fact["source"]),
     }));
 
-    return { facts };
+    let codes: CortiCode[] = [];
+    if (codesRes.ok) {
+      const codingPayload = (await codesRes.json()) as {
+        codes?: Array<Record<string, unknown>>;
+      };
+      codes = (codingPayload.codes ?? []).map((item, index) => {
+        const evidences = Array.isArray(item["evidences"])
+          ? (item["evidences"] as Array<Record<string, unknown>>)
+          : [];
+        return {
+          id: `${String(item["code"] ?? index)}-${index}`,
+          system: String(item["system"] ?? ""),
+          code: String(item["code"] ?? ""),
+          display: String(item["display"] ?? ""),
+          evidence: evidences
+            .map((e) => String(e["text"] ?? ""))
+            .filter(Boolean)
+            .join(" | "),
+        };
+      });
+    } else {
+      const body = await codesRes.text();
+      console.error(`Corti coding failed [${codesRes.status}]: ${body}`);
+    }
+
+    return { facts, codes };
   });
