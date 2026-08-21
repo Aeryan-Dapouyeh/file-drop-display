@@ -314,12 +314,44 @@ function Index() {
               )}
             </Panel>
 
-            <Panel title="Diagnosis codes">
-              <div className="flex min-h-[120px] items-center justify-center rounded-md border border-dashed border-border">
+            <Panel
+              title="Diagnosis codes"
+              meta={codes ? `${codes.length} ${codes.length === 1 ? "code" : "codes"}` : undefined}
+            >
+              {!codes ? (
+                <div className="flex min-h-[120px] items-center justify-center rounded-md border border-dashed border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Process a note to list the extracted diagnosis codes.
+                  </p>
+                </div>
+              ) : codes.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Diagnosis codes will be listed here once code extraction is connected.
+                  No diagnosis codes were extracted from this note.
                 </p>
-              </div>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {codes.map((code) => (
+                    <li key={code.id} className="space-y-1 py-3 first:pt-0 last:pb-0">
+                      <div className="flex flex-wrap items-baseline gap-3">
+                        <span className="rounded border border-foreground px-2 py-0.5 font-mono text-xs font-semibold text-foreground">
+                          {code.code}
+                        </span>
+                        <span className="text-sm font-medium text-foreground">{code.display}</span>
+                        {code.system && (
+                          <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                            {code.system}
+                          </span>
+                        )}
+                      </div>
+                      {code.evidence && (
+                        <p className="text-xs leading-relaxed text-muted-foreground">
+                          {code.evidence}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </Panel>
           </div>
         </div>
