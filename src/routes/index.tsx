@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
+import cortiLogo from "@/assets/corti-logo.svg";
 import { useCallback, useMemo, useState } from "react";
 import { FileText, Upload, X, AlertCircle, Loader2, Mic, User } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
@@ -172,7 +173,7 @@ function Index() {
     <div className="min-h-screen bg-secondary px-6 py-8 text-foreground">
       <div className="mx-auto max-w-7xl space-y-6">
         {/* 1) Patient overview header */}
-        <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6">
+        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-background">
               <User className="h-6 w-6 text-foreground" />
@@ -186,7 +187,14 @@ function Index() {
               </h1>
             </div>
           </div>
-          <p className="font-mono text-sm text-muted-foreground">{PATIENT.id}</p>
+          <div className="flex items-center gap-4">
+            <p className="font-mono text-sm text-muted-foreground">{PATIENT.id}</p>
+            <img
+              src={cortiLogo}
+              alt="Corti logo"
+              className="h-8 w-auto text-foreground"
+            />
+          </div>
         </header>
 
         {/* 2) Demographics + timeline */}
