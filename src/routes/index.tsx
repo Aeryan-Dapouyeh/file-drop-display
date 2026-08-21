@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { FileText, Upload, X, AlertCircle, Loader2, Mic, User } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 
 import { extractFacts, type CortiFact, type CortiCode } from "@/lib/corti.functions";
 import { useDictation } from "@/lib/use-dictation";
-import { generatePatientTimeline } from "@/lib/patient-timeline";
+import { generatePatientTimeline, type TimelineEvent } from "@/lib/patient-timeline";
+import { buildEventsFromExtraction } from "@/lib/corti-insert";
 import { PatientTimeline } from "@/components/PatientTimeline";
 
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,8 @@ function Panel({
   );
 }
 
-const TIMELINE_EVENTS = generatePatientTimeline("E0001");
+const ENCOUNTER_KEY = "E0001";
+const BASE_TIMELINE_EVENTS = generatePatientTimeline(ENCOUNTER_KEY);
 
 function Index() {
   const [text, setText] = useState("");
@@ -73,6 +75,14 @@ function Index() {
   const [facts, setFacts] = useState<CortiFact[] | null>(null);
   const [codes, setCodes] = useState<CortiCode[] | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [newEvents, setNewEvents] = useState<TimelineEvent[]>([]);
+  const timelineEvents = useMemo(
+    () =>
+      [...BASE_TIMELINE_EVENTS, ...newEvents].sort(
+        (a, b) => Date.parse(a.eventTime) - Date.parse(b.eventTime),
+      ),
+    [newEvents],
+  );
   const runExtractFacts = useServerFn(extractFacts);
   const dictation = useDictation({
     onTranscript: (transcript) => {
@@ -133,6 +143,7 @@ function Index() {
     setError(null);
     setFacts(null);
     setCodes(null);
+    setNewEvents([]);
   }, []);
 
   const onProcess = useCallback(async () => {
@@ -148,6 +159,7 @@ function Index() {
       } else {
         setFacts(result.facts);
         setCodes(result.codes);
+        setNewEvents(buildEventsFromExtraction(result.facts, result.codes, ENCOUNTER_KEY));
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Fact extraction failed.");
@@ -198,9 +210,13 @@ function Index() {
           <Panel
             title="Patient timeline"
             className="lg:col-span-2"
-            meta={`${TIMELINE_EVENTS.length} events \u2014 scroll right`}
+            meta={
+              newEvents.length > 0
+                ? `${timelineEvents.length} events \u2014 ${newEvents.length} new`
+                : `${timelineEvents.length} events \u2014 scroll right`
+            }
           >
-            <PatientTimeline events={TIMELINE_EVENTS} />
+            <PatientTimeline events={timelineEvents} />
           </Panel>
         </div>
 

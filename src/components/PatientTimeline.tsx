@@ -60,6 +60,7 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
         <div className="relative flex">
           {points.map((point, index) => {
             const isActive = active?.index === index;
+            const isNew = point.items.some((item) => item.isNew);
             const isNewDay =
               index === 0 || point.time.slice(0, 10) !== points[index - 1]!.time.slice(0, 10);
             return (
@@ -92,13 +93,19 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
                     setActive({ index, x: rect.left + rect.width / 2, y: rect.bottom + 10 });
                   }}
                   onBlur={() => setActive(null)}
-                  className={`relative z-10 flex h-4 w-4 items-center justify-center rounded-full border-2 border-foreground transition-all ${
-                    isActive ? "scale-125 bg-foreground" : "bg-background"
+                  className={`relative z-10 flex h-4 w-4 items-center justify-center rounded-full border-2 transition-all ${
+                    isNew ? "border-timeline-new" : "border-foreground"
+                  } ${
+                    isActive
+                      ? `scale-125 ${isNew ? "bg-timeline-new" : "bg-foreground"}`
+                      : isNew
+                        ? "bg-timeline-new"
+                        : "bg-background"
                   }`}
                 >
                   {point.items.length > 1 && (
                     <span
-                      className={`text-[8px] font-bold ${isActive ? "text-background" : "text-foreground"}`}
+                      className={`text-[8px] font-bold ${isActive || isNew ? "text-background" : "text-foreground"}`}
                     >
                       {point.items.length}
                     </span>
@@ -118,6 +125,9 @@ export function PatientTimeline({ events }: { events: TimelineEvent[] }) {
                         <li key={`${item.sourceTable}-${item.eventType}-${i}`} className="space-y-0.5">
                           <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
                             {SOURCE_LABELS[item.sourceTable] ?? item.sourceTable}
+                            {item.isNew ? (
+                              <span className="ml-1 font-semibold text-timeline-new">new</span>
+                            ) : null}
                           </p>
                           <p className="text-xs font-medium leading-snug text-foreground">
                             {item.eventType}
