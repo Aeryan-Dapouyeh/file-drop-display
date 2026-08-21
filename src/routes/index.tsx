@@ -37,11 +37,13 @@ function Panel({
   meta,
   children,
   className,
+  contentClassName,
 }: {
   title: string;
   meta?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  contentClassName?: string;
 }) {
   return (
     <section
@@ -53,7 +55,7 @@ function Panel({
         </h2>
         {meta && <span className="text-xs text-muted-foreground">{meta}</span>}
       </header>
-      <div className="p-5">{children}</div>
+      <div className={`p-5 ${contentClassName ?? ""}`}>{children}</div>
     </section>
   );
 }
