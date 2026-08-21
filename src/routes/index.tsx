@@ -99,6 +99,16 @@ function Index() {
       ),
     [newEvents],
   );
+
+  const importantFactIndices = useMemo(() => {
+    if (!facts || facts.length === 0) return new Set<number>();
+    const count = Math.min(15, facts.length);
+    const set = new Set<number>();
+    while (set.size < count) {
+      set.add(Math.floor(Math.random() * facts.length));
+    }
+    return set;
+  }, [facts]);
   const runExtractFacts = useServerFn(extractFacts);
   const runGenerateSummary = useServerFn(generateSummary);
   const dictation = useDictation({
