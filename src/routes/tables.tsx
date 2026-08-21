@@ -63,11 +63,18 @@ function TablesPage() {
   return (
     <div className="min-h-screen bg-secondary px-6 py-8 text-foreground">
       <div className="mx-auto max-w-7xl space-y-6">
-        <header>
-          <h1 className="text-2xl font-semibold tracking-tight">Patient data tables</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Raw source data used to build the patient timeline.
-          </p>
+        <header className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Patient data tables</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Raw source data used to build the patient timeline.
+            </p>
+          </div>
+          <img
+            src={cortiLogoAsset.url}
+            alt="Corti logo"
+            className="h-8 w-auto"
+          />
         </header>
 
         <div className="flex flex-wrap items-center gap-2">
